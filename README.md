@@ -1,93 +1,104 @@
-# DURA: Duality-Induced Regularizer for Tensor Factorization Based Knowledge Graph Completion
+<h1 align="center">DURA</h1>
 
-This is the code of paper 
-**Duality-Induced Regularizer for Tensor Factorization Based Knowledge Graph Completion**. 
-Zhanqiu Zhang, Jianyu Cai, Jie Wang. NeurIPS 2020. [[arXiv](https://arxiv.org/abs/2011.05816)]
-[[NeurIPS-Official](https://proceedings.neurips.cc/paper/2020/hash/f6185f0ef02dcaec414a3171cd01c697-Abstract.html)]
-
-## Dependencies
-- Python 3.6+
-- PyTorch 1.0~1.7
-- NumPy 1.17.2+
-- tqdm 4.41.1+
-
-## Results
-The results of **DURA** on **WN18RR**, **FB15k-237** and **YAGO3-10** are as follows.
+<p align="center"><strong>Regularization for knowledge graph completion.</strong></p>
+<p align="center">Research code for duality-induced regularization of tensor-factorization knowledge graph embeddings.</p>
 
 <p align="center">
-  <img src="./result.png">
+  <strong>English</strong> · <a href="README.tr.md">Türkçe</a><br />
+  <a href="https://arxiv.org/abs/2011.05816"><strong>Read the paper</strong></a> ·
+  <a href="docs/REPRODUCING.md">Reproduction recipes</a> ·
+  <a href="#citation">Cite this work</a>
 </p>
 
-## Reproduce the Results
+---
 
-### 1. Preprocess the Datasets
-To preprocess the datasets, run the following commands.
+This repository contains the research implementation accompanying **Duality-Induced Regularizer for Tensor Factorization Based Knowledge Graph Completion**, by **Zhanqiu Zhang, Jianyu Cai and Jie Wang**, published at **NeurIPS 2020**. It includes CP, ComplEx and RESCAL models, DURA regularizers, benchmark preprocessing and the original experiment commands.
 
-```shell script
+The original authors and paper remain the attribution for the scientific contribution. This repository's bilingual presentation does not claim new authorship, newly reproduced results or a modernized implementation. [arXiv manuscript](https://arxiv.org/abs/2011.05816) · [NeurIPS proceedings](https://proceedings.neurips.cc/paper/2020/hash/f6185f0ef02dcaec414a3171cd01c697-Abstract.html)
+
+## Start with the experiments
+
+| Requirement | Historical environment documented by the project |
+| --- | --- |
+| Python | 3.6 or newer |
+| PyTorch | 1.0–1.7 |
+| NumPy | 1.17.2 or newer |
+| tqdm | 4.41.1 or newer |
+| Compute | CUDA-capable GPU and a matching CUDA-enabled PyTorch build |
+| Data | WN18RR, FB15k-237 and YAGO3-10 splits included under `src_data/` |
+
+These are the original dependency requirements, not a claim that every newer version is compatible. The training, evaluation and some regularizers call CUDA directly. A CPU-only execution path is not provided. There is no pinned requirements or environment file.
+
+```bash
+git clone https://github.com/ArdaHFO/KGE-DURA.git
+cd KGE-DURA
+```
+
+Prepare an isolated environment compatible with the historical stack and your GPU. Then preprocess the bundled data from the `code` directory.
+
+```bash
 cd code
 python process_datasets.py
 ```
 
-Now, the processed datasets are in the `data` directory.
+The script writes mapped triples, entity/relation IDs and filtered-evaluation lookup data to `data/` at the repository root. Existing dataset output directories are skipped.
 
-### 2. Reproduce the Results 
-To reproduce the results of CP, ComplEx and RESCAL with
-the DURA regularizer on WN18RR, FB15k237 and YAGO3-10,
-please run the following commands.
+Choose the model/dataset combination in the [reproduction guide](docs/REPRODUCING.md). It preserves all nine original training commands and their hyperparameters. Run those commands from `code/`. `FB237` is the command-line name used for FB15k-237.
 
-```shell script
-#################################### WN18RR ####################################
-# CP
-CUDA_VISIBLE_DEVICES=0 python learn.py --dataset WN18RR --model CP --rank 2000 --optimizer Adagrad \
---learning_rate 1e-1 --batch_size 100 --regularizer DURA --reg 1e-1 --max_epochs 200 \
---valid 5 -train -id 0 -save -weight
+## Inside the implementation
 
-# ComplEx
-CUDA_VISIBLE_DEVICES=0 python learn.py --dataset WN18RR --model ComplEx --rank 2000 --optimizer Adagrad \
---learning_rate 1e-1 --batch_size 100 --regularizer DURA_W --reg 1e-1 --max_epochs 50 \
---valid 5 -train -id 0 -save -weight
+- **Three tensor-factorization models.** CP, ComplEx and RESCAL share the knowledge graph completion interface in `models.py`.
+- **Model-specific regularization.** DURA, weighted DURA and RESCAL variants are implemented alongside the existing comparison regularizers.
+- **Reciprocal training triples.** The dataset loader augments triples with reversed relations for head and tail prediction.
+- **Filtered ranking.** Evaluation reports mean reciprocal rank and Hits@1/3/10 while filtering known true triples.
+- **Reproduction recipes.** Original settings cover each model on WN18RR, FB15k-237 and YAGO3-10.
+- **Exported artifacts.** With `-save`, training writes configuration, logs, a checkpoint and entity/relation embeddings under `logs/`.
 
-# RESCAL
-CUDA_VISIBLE_DEVICES=2 python learn.py --dataset WN18RR --model RESCAL --rank 256 --optimizer Adagrad \
---learning_rate 1e-1 --batch_size 1024 --regularizer DURA_RESCAL --reg 1e-1 --max_epochs 200 \
---valid 5 -train -id 0 -save -weight
+## Reported results
 
-#################################### FB237 ####################################
-# CP
-CUDA_VISIBLE_DEVICES=0 python learn.py --dataset FB237 --model CP --rank 2000 --optimizer Adagrad \
---learning_rate 1e-1 --batch_size 100 --regularizer DURA_W --reg 5e-2 --max_epochs 200 \
---valid 5 -train -id 0 -save
+The original repository includes the following result figure for WN18RR, FB15k-237 and YAGO3-10. It is retained as the project's reported research result, not a new benchmark run performed for this documentation update.
 
-# ComplEx
-CUDA_VISIBLE_DEVICES=0 python learn.py --dataset FB237 --model ComplEx --rank 2000 --optimizer Adagrad \
---learning_rate 1e-1 --batch_size 100 --regularizer DURA_W --reg 5e-2 --max_epochs 200 \
---valid 5 -train -id 0 -save
+<p align="center">
+  <img src="result.png" alt="Original DURA benchmark results for WN18RR, FB15k-237 and YAGO3-10" />
+</p>
 
-# RESCAL
-CUDA_VISIBLE_DEVICES=0 python learn.py --dataset FB237 --model RESCAL --rank 512 --optimizer Adagrad \
---learning_rate 1e-1 --batch_size 512 --regularizer DURA_RESCAL --reg 5e-2 --max_epochs 200 \
---valid 5 -train -id 0 -save
+See the paper for the scientific setting and interpretation. The original figure and experiment hyperparameters have not been changed.
 
+## Development and validation
 
-#################################### YAGO3-10 ####################################
-# CP
-CUDA_VISIBLE_DEVICES=0 python learn.py --dataset YAGO3-10 --model CP --rank 1000 --optimizer Adagrad \
---learning_rate 1e-1 --batch_size 1000 --regularizer DURA_W --reg 5e-3 --max_epochs 200 \
---valid 5 -train -id 0 -save -weight
+From the repository root, inspect available command-line options after installing the dependencies.
 
-# ComplEx
-CUDA_VISIBLE_DEVICES=0 python learn.py --dataset YAGO3-10 --model ComplEx --rank 1000 --optimizer Adagrad \
---learning_rate 1e-1 --batch_size 1000 --regularizer DURA_W --reg 5e-3 --max_epochs 200 \
---valid 5 -train -id 0 -save
-
-# RESCAL
-CUDA_VISIBLE_DEVICES=0 python learn.py --dataset YAGO3-10 --model RESCAL --rank 512 --optimizer Adagrad \
---learning_rate 1e-1 --batch_size 1024 --regularizer DURA_RESCAL_W --reg 5e-3 --max_epochs 200 \
---valid 5 -train -id 0 -save -weight
+```bash
+cd code
+python learn.py --help
 ```
 
+The repository does not include an automated test suite or CI workflow. This documentation refresh inspected the Python implementation and original instructions, but did not preprocess datasets, train models or reproduce the reported metrics. The training entry point does not establish a fixed random seed, and compatibility with recent Python/PyTorch versions has not been validated here.
+
+Keep `-save` in the supplied training recipes because the training loop expects the save directory for its log. Although the parser exposes `-test`, the inspected script has no separate test-only execution branch. Review [`learn.py`](code/learn.py) before adapting evaluation or checkpoint workflows.
+
+## Repository map
+
+| Path | Purpose |
+| --- | --- |
+| [`code/process_datasets.py`](code/process_datasets.py) | Prepare benchmark splits and filtering structures |
+| [`code/datasets.py`](code/datasets.py) | Load triples, add reciprocals and evaluate ranking |
+| [`code/models.py`](code/models.py) | CP, ComplEx and RESCAL implementations |
+| [`code/regularizers.py`](code/regularizers.py) | DURA and other regularizers |
+| [`code/optimizers.py`](code/optimizers.py) | Minibatch optimization loop |
+| [`code/learn.py`](code/learn.py) | Training arguments, evaluation and artifact export |
+| [`src_data/`](src_data/) | Bundled benchmark splits and dataset notices |
+| [`docs/REPRODUCING.md`](docs/REPRODUCING.md) | Preserved original experiment commands |
+| [`result.png`](result.png) | Original reported result figure |
+
+## Contributing
+
+For reproducibility reports, include the commit, environment, CUDA/PyTorch versions, dataset, complete command and observed metrics. Explain any changes to seeds, preprocessing or hyperparameters. Preserve the original recipes and distinguish new experimental results from those reported by the paper. Documentation and portability improvements should retain the authors' attribution and dataset notices.
+
 ## Citation
-If you find this code useful, please consider citing the following paper.
+
+If this code is useful in your research, cite the original paper.
+
 ```
 @inproceedings{NEURIPS2020_f6185f0e,
  author = {Zhang, Zhanqiu and Cai, Jianyu and Wang, Jie},
@@ -102,11 +113,9 @@ If you find this code useful, please consider citing the following paper.
 }
 ```
 
-## Acknowledgement
-We refer to the code of [kbc](https://github.com/facebookresearch/kbc). Thanks for their contributions.
+## License and credits
 
-## Other Repositories
-If you are interested in our work, you may find the following paper useful.
+The original implementation acknowledges [facebookresearch/kbc](https://github.com/facebookresearch/kbc). The authors also provide the related work **Learning Hierarchy-Aware Knowledge Graph Embeddings for Link Prediction**, by Zhanqiu Zhang, Jianyu Cai, Yongdong Zhang and Jie Wang, AAAI 2020. [Paper](https://arxiv.org/pdf/1911.09419.pdf) · [KGE-HAKE code](https://github.com/MIRALab-USTC/KGE-HAKE)
 
-**Learning Hierarchy-Aware Knowledge Graph Embeddings for Link Prediction.**
-*Zhanqiu Zhang, Jianyu Cai, Yongdong Zhang, Jie Wang.* AAAI 2020. [[paper](https://arxiv.org/pdf/1911.09419.pdf)] [[code](https://github.com/MIRALab-USTC/KGE-HAKE)]
+No project-level software license file is present in this repository. Dataset notices are retained separately in [FB237](src_data/FB237/license.docx), [WN18RR](src_data/WN18RR/license.txt) and [YAGO3-10](src_data/YAGO3-10/license.txt). The WN18RR notice refers to `WN/license.txt`, which is not included in this tree. The YAGO3-10 notice identifies CC-BY for the source dumps. These dataset notices do not establish a license for the entire codebase, and this documentation assigns no new license.
+
