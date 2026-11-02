@@ -1,4 +1,6 @@
-<h1 align="center">DURA</h1>
+KGE-DURA is research software that predicts missing connections in collections of linked facts.
+
+<h1 align="center">KGE-DURA</h1>
 
 <p align="center"><strong>Regularization for knowledge graph completion.</strong></p>
 <p align="center">Research code for duality-induced regularization of tensor-factorization knowledge graph embeddings.</p>
@@ -30,8 +32,8 @@ The original authors and paper remain the attribution for the scientific contrib
 These are the original dependency requirements, not a claim that every newer version is compatible. The training, evaluation and some regularizers call CUDA directly. A CPU-only execution path is not provided. There is no pinned requirements or environment file.
 
 ```bash
-git clone https://github.com/ArdaHFO/KGE-DURA.git
-cd KGE-DURA
+git clone https://github.com/ArdaHFO/kge-dura.git
+cd kge-dura
 ```
 
 Prepare an isolated environment compatible with the historical stack and your GPU. Then preprocess the bundled data from the `code` directory.
@@ -73,9 +75,9 @@ cd code
 python learn.py --help
 ```
 
-The repository does not include an automated test suite or CI workflow. This documentation refresh inspected the Python implementation and original instructions, but did not preprocess datasets, train models or reproduce the reported metrics. The training entry point does not establish a fixed random seed, and compatibility with recent Python/PyTorch versions has not been validated here.
+The repository does not include an automated test suite or CI workflow. The Python implementation and original instructions were inspected statically. Source fixes address batch dimensions, filtered-ranking mutation, dataset dimensions and CLI execution paths. No code, tests, preprocessing, training or benchmarks were run for these changes. The training entry point does not establish a fixed random seed, and compatibility with recent Python/PyTorch versions has not been validated here.
 
-Keep `-save` in the supplied training recipes because the training loop expects the save directory for its log. Although the parser exposes `-test`, the inspected script has no separate test-only execution branch. Review [`learn.py`](code/learn.py) before adapting evaluation or checkpoint workflows.
+The supplied recipes retain `-save` to export logs, checkpoints and embeddings. Training without `-save` does not write these artifacts. Standalone evaluation uses `-test --checkpoint <run-directory>` with a matching dataset, model and rank. Review [`learn.py`](code/learn.py) before adapting the workflow. These corrected paths have not been validated by execution.
 
 ## Repository map
 
@@ -118,4 +120,3 @@ If this code is useful in your research, cite the original paper.
 The original implementation acknowledges [facebookresearch/kbc](https://github.com/facebookresearch/kbc). The authors also provide the related work **Learning Hierarchy-Aware Knowledge Graph Embeddings for Link Prediction**, by Zhanqiu Zhang, Jianyu Cai, Yongdong Zhang and Jie Wang, AAAI 2020. [Paper](https://arxiv.org/pdf/1911.09419.pdf) · [KGE-HAKE code](https://github.com/MIRALab-USTC/KGE-HAKE)
 
 No project-level software license file is present in this repository. Dataset notices are retained separately in [FB237](src_data/FB237/license.docx), [WN18RR](src_data/WN18RR/license.txt) and [YAGO3-10](src_data/YAGO3-10/license.txt). The WN18RR notice refers to `WN/license.txt`, which is not included in this tree. The YAGO3-10 notice identifies CC-BY for the source dumps. These dataset notices do not establish a license for the entire codebase, and this documentation assigns no new license.
-

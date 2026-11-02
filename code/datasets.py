@@ -17,7 +17,10 @@ class Dataset(object):
 
         print(self.data['train'].shape)
 
-        maxis = np.max(self.data['train'], axis=0)
+        maxis = np.max(
+            np.stack([np.max(split, axis=0) for split in self.data.values() if len(split)]),
+            axis=0,
+        )
         self.n_entities = int(max(maxis[0], maxis[2]) + 1)
         self.n_predicates = int(maxis[1] + 1)
         self.n_predicates *= 2

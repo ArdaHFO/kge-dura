@@ -6,7 +6,7 @@ The following preprocessing instructions and all nine experiment recipes are pre
 
 Use the historical dependency stack described in the overview, with CUDA-enabled PyTorch. Run training from `code/` because the scripts resolve `../src_data`, `../data` and `../logs` relative to the current directory. `CUDA_VISIBLE_DEVICES` below uses POSIX shell syntax. Choose an available GPU on your own machine. The original WN18RR RESCAL example selects GPU 2.
 
-Preprocessing writes into `data/`. Existing dataset output directories are skipped by the script, so preserve or inspect previous outputs before attempting a fresh preprocessing run. Keep `-save` in training commands because the training loop opens its log beneath the save directory.
+Preprocessing writes into `data/`. Existing dataset output directories are skipped by the script, so preserve or inspect previous outputs before attempting a fresh preprocessing run. The original recipes retain `-save` to export logs, checkpoints and embeddings. Training without `-save` writes no training log or model artifacts.
 
 ## Reproduce the Results
 
@@ -83,5 +83,4 @@ With `-save`, the run directory under `logs/` contains the argument configuratio
 
 The source computes filtered head- and tail-prediction MRR and Hits@1/3/10. Reproducing the reported numbers requires the full training/evaluation workflow. No experiment was run as part of the documentation refresh. The repository does not pin a complete environment or set a fixed random seed in the training entry point.
 
-The CLI declares a `-test` flag, but the inspected training script has no separate branch implementing test-only execution. Do not treat it as a standalone evaluation command. See [`code/learn.py`](../code/learn.py) before adapting checkpoint evaluation.
-
+Standalone evaluation uses `-test --checkpoint <run-directory>` with the matching dataset, model and rank. The checkpoint directory must contain the saved `checkpoint` file. See [`code/learn.py`](../code/learn.py). The static fixes to argument handling and ranking have not been exercised by a new training or evaluation run.

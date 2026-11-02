@@ -16,10 +16,14 @@ class KBCOptimizer(object):
         self.regularizer = regularizer[0]
         self.regularizer2 = regularizer[1]
         self.optimizer = optimizer
+        if batch_size < 1:
+            raise ValueError('batch_size must be positive')
         self.batch_size = batch_size
         self.verbose = verbose
 
     def epoch(self, examples: torch.LongTensor, e=0, weight=None):
+        if examples.shape[0] == 0:
+            raise ValueError('training examples must not be empty')
         self.model.train()
         actual_examples = examples[torch.randperm(examples.shape[0]), :]
         loss = nn.CrossEntropyLoss(reduction='mean', weight=weight)

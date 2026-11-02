@@ -1,4 +1,6 @@
-<h1 align="center">DURA</h1>
+KGE-DURA, birbirine bağlı bilgiler arasındaki eksik bağlantıları tahmin eden bir araştırma yazılımıdır.
+
+<h1 align="center">KGE-DURA</h1>
 
 <p align="center"><strong>Bilgi grafı tamamlama için düzenlileştirme.</strong></p>
 <p align="center">Tensör çarpanlarına ayırmaya dayalı bilgi grafı gömmelerinde dualite kaynaklı düzenlileştirme için araştırma kodu.</p>
@@ -30,8 +32,8 @@ Bilimsel katkının atfı özgün yazarlara ve makaleye aittir. İki dilli sunum
 Bunlar özgün bağımlılık gereksinimleridir, daha yeni bütün sürümlerin uyumlu olduğu iddia edilmez. Eğitim, değerlendirme ve bazı düzenlileştiriciler doğrudan CUDA kullanır. Yalnız CPU ile çalışma yolu sunulmaz. Sabitlenmiş bir requirements veya ortam dosyası bulunmaz.
 
 ```bash
-git clone https://github.com/ArdaHFO/KGE-DURA.git
-cd KGE-DURA
+git clone https://github.com/ArdaHFO/kge-dura.git
+cd kge-dura
 ```
 
 Tarihsel yazılım bileşenleri ve GPU'nla uyumlu, yalıtılmış bir ortam hazırla. Sonra sağlanan veriyi `code` dizininden ön işle.
@@ -73,9 +75,9 @@ cd code
 python learn.py --help
 ```
 
-Repoda otomatik test paketi veya CI iş akışı yoktur. Bu dokümantasyon yenilemesinde Python uygulaması ve özgün talimatlar incelendi. Veri ön işleme, model eğitimi veya raporlanan ölçümlerin yeniden üretimi yapılmadı. Eğitim giriş noktası sabit bir rastgelelik tohumu belirlemiyor. Güncel Python/PyTorch sürümleriyle uyumluluk burada doğrulanmadı.
+Repoda otomatik test paketi veya CI iş akışı yoktur. Python uygulaması ve özgün talimatlar statik olarak incelendi. Kaynak düzeltmeleri batch boyutlarını, filtreli sıralamada liste değişimini, veri boyutlarını ve komut satırı akışlarını kapsar. Bu değişiklikler için kod, test, ön işleme, eğitim veya performans deneyi çalıştırılmadı. Eğitim giriş noktası sabit bir rastgelelik tohumu belirlemiyor. Güncel Python/PyTorch sürümleriyle uyumluluk burada doğrulanmadı.
 
-Eğitim döngüsü günlüğü kayıt dizininde açtığı için sağlanan komutlardaki `-save` seçeneğini koru. Ayrıştırıcı `-test` seçeneğini sunsa da incelenen betikte ayrı bir yalnız test çalıştırma dalı bulunmuyor. Değerlendirme veya checkpoint akışını uyarlamadan önce [`learn.py`](code/learn.py) dosyasını incele.
+Sağlanan komutlar günlük, checkpoint ve gömmeleri kaydetmek için `-save` seçeneğini korur. Bu seçenek olmadan eğitim söz konusu çıktıları yazmaz. Bağımsız değerlendirme için eşleşen veri kümesi, model ve rank ile `-test --checkpoint <run-directory>` kullanılır. Akışı uyarlamadan önce [`learn.py`](code/learn.py) dosyasını incele. Düzeltilen bu yollar çalıştırılarak doğrulanmadı.
 
 ## Repo haritası
 
@@ -118,4 +120,3 @@ Bu kod araştırmanda yararlı olduysa özgün makaleye atıf yap.
 Özgün uygulama [facebookresearch/kbc](https://github.com/facebookresearch/kbc) koduna teşekkür eder. Yazarların ilişkili çalışması **Learning Hierarchy-Aware Knowledge Graph Embeddings for Link Prediction**, Zhanqiu Zhang, Jianyu Cai, Yongdong Zhang ve Jie Wang tarafından AAAI 2020 kapsamında yayımlanmıştır. [Makale](https://arxiv.org/pdf/1911.09419.pdf) · [KGE-HAKE kodu](https://github.com/MIRALab-USTC/KGE-HAKE)
 
 Repoda proje düzeyinde yazılım lisansı dosyası bulunmuyor. Veri kümesi bildirimleri [FB237](src_data/FB237/license.docx), [WN18RR](src_data/WN18RR/license.txt) ve [YAGO3-10](src_data/YAGO3-10/license.txt) altında ayrı korunur. WN18RR bildirimi bu ağaçta bulunmayan `WN/license.txt` dosyasına yönlendirir. YAGO3-10 bildirimi kaynak dökümler için CC-BY belirtir. Bu bildirimler kod tabanının tamamına bir lisans atamaz. Bu dokümantasyon yeni bir lisans oluşturmaz.
-

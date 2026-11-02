@@ -19,6 +19,8 @@ class KBCModel(nn.Module, ABC):
         :param batch_size: maximum number of queries processed at once
         :return:
         """
+        if batch_size < 1:
+            raise ValueError('batch_size must be positive')
         ranks = torch.ones(len(queries))
         with tqdm(total=queries.shape[0], unit='ex') as bar:
             bar.set_description(f'Evaluation')
@@ -31,14 +33,14 @@ class KBCModel(nn.Module, ABC):
                     targets = torch.stack([scores[row, col] for row, col in enumerate(target_idxs)]).unsqueeze(-1)
 
                     for i, query in enumerate(these_queries):
-                        filter_out = filters[(query[0].item(), query[1].item())]
+                        filter_out = list(filters[(query[0].item(), query[1].item())])
                         filter_out += [queries[b_begin + i, 2].item()]   # Add the tail of this (b_begin + i) query
-                        scores[i, torch.LongTensor(filter_out)] = -1e6
+                        scores[i, torch.tensor(filter_out, dtype=torch.long, device=scores.device)] = float('-inf')
                     ranks[b_begin:b_begin + batch_size] += torch.sum(
                         (scores >= targets).float(), dim=1
                     ).cpu()
                     b_begin += batch_size
-                    bar.update(batch_size)
+                    bar.update(these_queries.shape[0])
         return ranks
 
 
@@ -69,7 +71,7 @@ class RESCAL(KBCModel):
         rel = self.rel(x[:, 1]).reshape(-1, self.rank, self.rank)
         rhs = self.rhs(x[:, 2])
 
-        return (torch.bmm(lhs.unsqueeze(1), rel)).squeeze() @ self.rhs.weight.t(), [(lhs, rel, rhs)]
+        return (torch.bmm(lhs.unsqueeze(1), rel)).squeeze(1) @ self.rhs.weight.t(), [(lhs, rel, rhs)]
 
 
 class CP(KBCModel):
@@ -137,4 +139,3 @@ class ComplEx(KBCModel):
                     torch.sqrt(rel[0] ** 2 + rel[1] ** 2),
                     torch.sqrt(rhs[0] ** 2 + rhs[1] ** 2))
                ]
-

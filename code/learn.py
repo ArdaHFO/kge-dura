@@ -18,16 +18,16 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument(
-    '--dataset', choices=datasets,
+    '--dataset', choices=datasets, required=True,
     help="Dataset in {}".format(datasets)
 )
 
 parser.add_argument(
-    '--model', type=str, default='CP'
+    '--model', choices=['CP', 'ComplEx', 'RESCAL'], default='CP'
 )
 
 parser.add_argument(
-    '--regularizer', type=str, default='NA',
+    '--regularizer', choices=['NA', 'Fro', 'N3', 'L1', 'L2', 'DURA', 'DURA_W', 'DURA_RESCAL', 'DURA_RESCAL_W'], default='NA',
 )
 
 optimizers = ['Adagrad', 'Adam', 'SGD']
@@ -41,7 +41,7 @@ parser.add_argument(
     help="Number of epochs."
 )
 parser.add_argument(
-    '--valid', default=3, type=float,
+    '--valid', default=3, type=int,
     help="Number of epochs before valid."
 )
 parser.add_argument(
@@ -82,17 +82,21 @@ parser.add_argument('-id', '--model_id', type=str, default='0')
 parser.add_argument('-ckpt', '--checkpoint', type=str, default='')
 
 args = parser.parse_args()
+if args.batch_size < 1 or args.rank < 1 or args.valid < 1:
+    parser.error('batch_size, rank and valid must be positive integers')
+if args.do_train and args.max_epochs < 1:
+    parser.error('max_epochs must be positive for training')
+if args.do_test and not args.do_train and not args.checkpoint:
+    parser.error('standalone testing requires --checkpoint')
 
 if args.do_save:
     assert args.save_path
     save_suffix = args.model + '_' + args.regularizer + '_' + args.dataset + '_' + args.model_id
 
-    if not os.path.exists(args.save_path):
-        os.mkdir(args.save_path)
+    os.makedirs(args.save_path, exist_ok=True)
 
     save_path = os.path.join(args.save_path, save_suffix)
-    if not os.path.exists(save_path):
-        os.mkdir(save_path)
+    os.makedirs(save_path, exist_ok=True)
 
     with open(os.path.join(save_path, 'config.json'), 'w') as f:
         json.dump(vars(args), f, indent=4)
@@ -110,8 +114,14 @@ print(dataset.get_shape())
 
 model = None
 regularizer = None
-exec('model = '+args.model+'(dataset.get_shape(), args.rank, args.init)')
-exec('regularizer = '+args.regularizer+'(args.reg)')
+model = {'CP': CP, 'ComplEx': ComplEx, 'RESCAL': RESCAL}[args.model](
+    dataset.get_shape(), args.rank, args.init
+)
+regularizer = {
+    'NA': NA, 'Fro': Fro, 'N3': N3, 'L1': L1, 'L2': L2,
+    'DURA': DURA, 'DURA_W': DURA_W,
+    'DURA_RESCAL': DURA_RESCAL, 'DURA_RESCAL_W': DURA_RESCAL_W,
+}[args.regularizer](args.reg)
 regularizer = [regularizer, N3(args.reg)]
 
 device = 'cuda'
@@ -142,11 +152,11 @@ def avg_both(mrrs: Dict[str, float], hits: Dict[str, torch.FloatTensor]):
 
 cur_loss = 0
 
-if args.checkpoint is not '':
+if args.checkpoint:
     model.load_state_dict(torch.load(os.path.join(args.checkpoint, 'checkpoint'), map_location='cuda:0'))
 
 if args.do_train:
-    with open(os.path.join(save_path, 'train.log'), 'w') as log_file:
+    with open(os.path.join(save_path, 'train.log') if args.do_save else os.devnull, 'w') as log_file:
         for e in range(args.max_epochs):
             print("Epoch: {}".format(e+1))
 
@@ -170,6 +180,10 @@ if args.do_train:
         test = avg_both(*dataset.eval(model, 'test', 50000))
         print("\t TEST : ", test)
 
+if args.do_test and not args.do_train:
+    test = avg_both(*dataset.eval(model, 'test', -1))
+    print("\t TEST : ", test)
+
 if args.do_save:
     torch.save(model.state_dict(), os.path.join(save_path, 'checkpoint'))
     embeddings = model.embeddings
@@ -183,4 +197,3 @@ if args.do_save:
         np.save(os.path.join(save_path, 'tail_entity_embedding.npy'), embeddings[2].weight.detach().cpu().numpy())
     else:
         print('SAVE ERROR!')
-
